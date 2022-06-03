@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./src/client/client-light.ts",
+  entry: "./src/client/client-fbxmodel.ts",
   module: {
     rules: [
       {
