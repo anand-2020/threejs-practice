@@ -3,6 +3,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { GUI } from "dat.gui";
 
+const elemDiv = document.createElement("div");
+elemDiv.id = "debug1";
+document.body.appendChild(elemDiv);
+
 const scene = new THREE.Scene();
 scene.add(new THREE.AxesHelper(5));
 

@@ -1,6 +1,26 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
+const canvas1 = document.createElement("canvas");
+canvas1.id = "c1";
+canvas1.classList.add("c");
+document.body.appendChild(canvas1);
+
+const canvas2 = document.createElement("canvas");
+canvas1.id = "c2";
+canvas1.classList.add("c");
+document.body.appendChild(canvas2);
+
+const canvas3 = document.createElement("canvas");
+canvas1.id = "c3";
+canvas1.classList.add("c");
+document.body.appendChild(canvas3);
+
+const canvas4 = document.createElement("canvas");
+canvas1.id = "c4";
+canvas1.classList.add("c");
+document.body.appendChild(canvas4);
+
 const scene = new THREE.Scene();
 // scene.background = new THREE.Color("blue");
 
@@ -16,10 +36,10 @@ camera3.position.z = 1; // orthographic right
 camera4.position.x = 1; // orthographic front
 camera4.lookAt(new THREE.Vector3(0, 0, 0));
 
-const canvas1 = document.getElementById("c1") as HTMLCanvasElement;
-const canvas2 = document.getElementById("c2") as HTMLCanvasElement;
-const canvas3 = document.getElementById("c3") as HTMLCanvasElement;
-const canvas4 = document.getElementById("c4") as HTMLCanvasElement;
+// const canvas1 = document.getElementById("c1") as HTMLCanvasElement;
+// const canvas2 = document.getElementById("c2") as HTMLCanvasElement;
+// const canvas3 = document.getElementById("c3") as HTMLCanvasElement;
+// const canvas4 = document.getElementById("c4") as HTMLCanvasElement;
 
 // WebGL is default renderer
 const renderer1 = new THREE.WebGLRenderer({ canvas: canvas1 });
