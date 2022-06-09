@@ -3,6 +3,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { GUI } from "dat.gui";
+const { io } = require("socket.io-client");
+const socket = io("http://localhost:3000");
+console.log(socket);
 
 // SCENE
 const scene = new THREE.Scene();
@@ -45,7 +48,7 @@ light();
 generateFloor();
 
 // MODEL WITH ANIMATIONS
-const characterControls: CharacterControls[] = [];
+const allModels: Map<string, CharacterControls> = new Map();
 let currModel: CharacterControls;
 
 new FBXLoader().load("models/woman-atpos.fbx", function (object) {
@@ -56,97 +59,95 @@ new FBXLoader().load("models/woman-atpos.fbx", function (object) {
     .animations;
   const mixer = new THREE.AnimationMixer(object);
   const animationsMap: Map<string, THREE.AnimationAction> = new Map();
-  console.log(fbxAnimations);
+  // console.log(fbxAnimations);
   fbxAnimations
     .filter((a) => a.name != "TPose")
     .forEach((a: THREE.AnimationClip) => {
       animationsMap.set(a.name, mixer.clipAction(a));
     });
 
-  characterControls.push(
-    new CharacterControls(
-      object,
-      mixer,
-      animationsMap,
-      orbitControls,
-      camera,
-      "Idle",
-      true
-    )
+  currModel = new CharacterControls(
+    object,
+    mixer,
+    animationsMap,
+    orbitControls,
+    camera,
+    "Idle",
+    true
   );
-  currModel = characterControls[0];
-  modelFolder.add(models, "Model_01");
+  socket.emit(
+    "newAvatar",
+    "woman-atpos.fbx",
+    currModel.model.position,
+    currModel.model.quaternion
+  );
+  // socket.emit("currLoc", currModel.model.position, currModel.model.quaternion);
 });
 
-new FBXLoader().load("models/man-atpos.fbx", function (object) {
-  object.scale.set(0.02, 0.02, 0.02);
-  scene.add(object);
+const addNewAvatar = (
+  sockId: string,
+  modelName: string,
+  position: THREE.Vector3,
+  rotation: THREE.Quaternion
+) => {
+  new FBXLoader().load(`models/${modelName}`, function (object) {
+    object.scale.set(0.02, 0.02, 0.02);
+    scene.add(object);
 
-  const fbxAnimations: THREE.AnimationClip[] = (object as THREE.Object3D)
-    .animations;
-  const mixer = new THREE.AnimationMixer(object);
-  const animationsMap: Map<string, THREE.AnimationAction> = new Map();
-  console.log(fbxAnimations);
-  fbxAnimations
-    .filter((a) => a.name != "TPose")
-    .forEach((a: THREE.AnimationClip) => {
-      animationsMap.set(a.name, mixer.clipAction(a));
-    });
+    const fbxAnimations: THREE.AnimationClip[] = (object as THREE.Object3D)
+      .animations;
+    const mixer = new THREE.AnimationMixer(object);
+    const animationsMap: Map<string, THREE.AnimationAction> = new Map();
+    // console.log(fbxAnimations);
+    fbxAnimations
+      .filter((a) => a.name != "TPose")
+      .forEach((a: THREE.AnimationClip) => {
+        animationsMap.set(a.name, mixer.clipAction(a));
+      });
 
-  characterControls.push(
-    new CharacterControls(
-      object,
-      mixer,
-      animationsMap,
-      orbitControls,
-      camera,
-      "Idle",
-      true
-    )
-  );
-  modelFolder.add(models, "Model_02");
-});
+    allModels.set(
+      sockId,
+      new CharacterControls(
+        object,
+        mixer,
+        animationsMap,
+        orbitControls,
+        camera,
+        "Idle",
+        false
+      )
+    );
 
-new FBXLoader().load("models/boy-atpos.fbx", function (object) {
-  object.scale.set(0.02, 0.02, 0.02);
-  scene.add(object);
-
-  const fbxAnimations: THREE.AnimationClip[] = (object as THREE.Object3D)
-    .animations;
-  const mixer = new THREE.AnimationMixer(object);
-  const animationsMap: Map<string, THREE.AnimationAction> = new Map();
-  console.log(fbxAnimations);
-  fbxAnimations
-    .filter((a) => a.name != "TPose")
-    .forEach((a: THREE.AnimationClip) => {
-      animationsMap.set(a.name, mixer.clipAction(a));
-    });
-
-  characterControls.push(
-    new CharacterControls(
-      object,
-      mixer,
-      animationsMap,
-      orbitControls,
-      camera,
-      "Idle",
-      true
-    )
-  );
-  modelFolder.add(models, "Model_03");
-});
-
-const models = {
-  Model_01: function () {
-    currModel = characterControls[0];
-  },
-  Model_02: function () {
-    currModel = characterControls[1];
-  },
-  Model_03: function () {
-    currModel = characterControls[2];
-  },
+    object.position.set(position.x, position.y, position.z);
+    object.applyQuaternion(rotation);
+  });
 };
+
+socket.on(
+  "newAvatar",
+  (
+    sockId: string,
+    modelName: string,
+    position: THREE.Vector3,
+    rotation: THREE.Quaternion
+  ) => {
+    addNewAvatar(sockId, modelName, position, rotation);
+  }
+);
+
+socket.on(
+  "updateAvatar",
+  (sockId: string, mixerUpdateDelta: number, keysPressed: any) => {
+    allModels.get(sockId)?.update(mixerUpdateDelta, keysPressed);
+  }
+);
+
+socket.on("currState", (models: any) => {
+  console.log(models);
+  models.forEach((model: any) => {
+    addNewAvatar(model.sockId, model.modelName, model.position, model.rotation);
+  });
+});
 
 // CONTROL KEYS
 const keysPressed = {};
@@ -158,10 +159,16 @@ document.addEventListener(
   },
   false
 );
+
 document.addEventListener(
   "keyup",
   (event) => {
     (keysPressed as any)[event.key.toLowerCase()] = false;
+    socket.emit(
+      "currLoc",
+      currModel.model.position,
+      currModel.model.quaternion
+    );
   },
   false
 );
@@ -172,6 +179,7 @@ function animate() {
   let mixerUpdateDelta = clock.getDelta();
   if (currModel) {
     currModel.update(mixerUpdateDelta, keysPressed);
+    socket.emit("updateAvatar", mixerUpdateDelta, keysPressed);
   }
   orbitControls.update();
   renderer.render(scene, camera);

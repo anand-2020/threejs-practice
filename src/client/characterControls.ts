@@ -16,6 +16,7 @@ export class CharacterControls {
   // state
   toggleRun: boolean = true;
   currentAction: string;
+  isMyAvatar: boolean;
 
   // temporary data
   walkDirection = new THREE.Vector3();
@@ -34,7 +35,8 @@ export class CharacterControls {
     animationsMap: Map<string, THREE.AnimationAction>,
     orbitControl: OrbitControls,
     camera: THREE.Camera,
-    currentAction: string
+    currentAction: string,
+    isMyAvatar: boolean
   ) {
     this.model = model;
     this.mixer = mixer;
@@ -48,6 +50,7 @@ export class CharacterControls {
     this.orbitControl = orbitControl;
     this.camera = camera;
     this.updateCameraTarget(0, 0);
+    this.isMyAvatar = isMyAvatar;
   }
 
   public switchRunToggle() {
@@ -114,7 +117,7 @@ export class CharacterControls {
       const moveZ = -this.walkDirection.z * velocity * delta;
       this.model.position.x += moveX;
       this.model.position.z += moveZ;
-      this.updateCameraTarget(moveX, moveZ);
+      if (this.isMyAvatar === true) this.updateCameraTarget(moveX, moveZ);
     }
   }
 

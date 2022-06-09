@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./src/client/client-multipleAvatar.ts",
+  entry: "./src/client/client-socket.ts",
   module: {
     rules: [
       {
