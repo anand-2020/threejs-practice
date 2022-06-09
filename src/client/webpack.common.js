@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./src/client/client-avatar.ts",
+  entry: "./src/client/client-multipleAvatar.ts",
   module: {
     rules: [
       {
