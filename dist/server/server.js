@@ -22,11 +22,11 @@ class App {
                 credentials: true,
             },
         });
-        console.log("starting server");
         this.io.on("connection", (socket) => {
             console.log(socket.id + " connected");
             socket.on("disconnect", () => {
                 console.log("socket disconnected : " + socket.id);
+                socket.broadcast.emit("leavingAvatar", socket.id);
                 this.avatars.delete(socket.id);
             });
             socket.on("currLoc", (position, rotation) => {

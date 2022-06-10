@@ -2,10 +2,9 @@ import { CharacterControls } from "./characterControls";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { GUI } from "dat.gui";
 const { io } = require("socket.io-client");
+
 const socket = io("http://localhost:3000");
-console.log(socket);
 
 // SCENE
 const scene = new THREE.Scene();
@@ -36,10 +35,6 @@ orbitControls.maxDistance = 15;
 orbitControls.enablePan = false;
 orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
 orbitControls.update();
-
-const gui = new GUI();
-const modelFolder = gui.addFolder("Select Model");
-modelFolder.open();
 
 // LIGHTS
 light();
@@ -143,10 +138,14 @@ socket.on(
 );
 
 socket.on("currState", (models: any) => {
-  console.log(models);
   models.forEach((model: any) => {
     addNewAvatar(model.sockId, model.modelName, model.position, model.rotation);
   });
+});
+
+socket.on("leavingAvatar", (sockId: string) => {
+  scene.remove(allModels.get(sockId)?.model as THREE.Object3D);
+  allModels.delete(sockId);
 });
 
 // CONTROL KEYS

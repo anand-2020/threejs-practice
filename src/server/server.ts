@@ -27,12 +27,12 @@ class App {
       },
     });
 
-    console.log("starting server");
     this.io.on("connection", (socket: Socket) => {
       console.log(socket.id + " connected");
 
       socket.on("disconnect", () => {
         console.log("socket disconnected : " + socket.id);
+        socket.broadcast.emit("leavingAvatar", socket.id);
         this.avatars.delete(socket.id);
       });
 
